@@ -30,6 +30,7 @@ public class UserDAOImpl implements UserDAO {
                     user.setUsername(rs.getString("username"));
                     user.setPassword(rs.getString("password"));
                     user.setRole(rs.getString("role"));
+                    log.info("getUserByUsername: username = {}", username);
                     return user;
                 }
             }
