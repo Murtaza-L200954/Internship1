@@ -6,9 +6,12 @@ import org.example.demo1.domain.model.Orders;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OrderDAOImpl implements OrdersDAO {
     private Connection conn;
+    private static final Logger log = LoggerFactory.getLogger(OrderDAOImpl.class);
 
     public OrderDAOImpl(Connection conn) {
         this.conn = conn;
@@ -29,8 +32,9 @@ public class OrderDAOImpl implements OrdersDAO {
                 order.setStatus(rs.getString("status"));
                 orders.add(order);
             }
+            log.info("getAllOrders result: {}", orders);
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("getAllOrders error", e);
         }
         return orders;
     }
@@ -47,11 +51,12 @@ public class OrderDAOImpl implements OrdersDAO {
                     order.setCustomerId(rs.getInt("customer_id"));
                     order.setTotal_amount(rs.getFloat("total_amount"));
                     order.setStatus(rs.getString("status"));
+                    log.info("getOrderById result: {}", order);
                     return order;
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("getOrderById error", e);
         }
         return null;
     }
@@ -69,14 +74,21 @@ public class OrderDAOImpl implements OrdersDAO {
             if (rows > 0) {
                 ResultSet rs = stmt.getGeneratedKeys();
                 if (rs.next()) {
-                    return rs.getInt(1); // return the generated order ID
+                    int orderId = rs.getInt(1);
+                    log.info("Order added successfully: orderId={}, customerId={}, totalAmount={}, status={}",
+                            orderId, orders.getCustomerId(), orders.getTotal_amount(), orders.getStatus());
+                    return orderId;
                 }
+            } else {
+                log.warn("No order was inserted for customerId={}", orders.getCustomerId());
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Failed to insert order for customerId={}, totalAmount={}, status={}",
+                    orders.getCustomerId(), orders.getTotal_amount(), orders.getStatus(), e);
         }
         return -1;  // signal failure
     }
+
 
 
 
@@ -86,35 +98,62 @@ public class OrderDAOImpl implements OrdersDAO {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, newStatus);
             stmt.setInt(2, orderId);
-            return stmt.executeUpdate() > 0;
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                log.info("Order status updated: orderId={}, newStatus={}", orderId, newStatus);
+                return true;
+            } else {
+                log.warn("No order found with id={} to update status", orderId);
+                return false;
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Failed to update status for orderId={}, newStatus={}", orderId, newStatus, e);
             return false;
         }
     }
+
 
     @Override
     public boolean deleteOrder(int id) {
         String sql = "DELETE FROM orders WHERE id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
+            int rowsDeleted = stmt.executeUpdate();
+            if (rowsDeleted > 0) {
+                log.info("Order deleted successfully: orderId={}", id);
+                return true;
+            } else {
+                log.warn("No order found to delete with orderId={}", id);
+                return false;
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Failed to delete order with orderId={}", id, e);
             return false;
         }
     }
 
+
+    @Override
     public int getLatestOrderId() {
         String sql = "SELECT MAX(id) AS id FROM orders";
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) return rs.getInt("id");
+
+            if (rs.next()) {
+                int latestId = rs.getInt("id");
+                log.info("Retrieved latest orderId: {}", latestId);
+                return latestId;
+            } else {
+                log.warn("No orders found in the database.");
+            }
+
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Failed to retrieve latest orderId", e);
         }
         return -1;
     }
+
 }
 
 

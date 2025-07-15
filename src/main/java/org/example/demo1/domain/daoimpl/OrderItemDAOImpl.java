@@ -42,7 +42,6 @@ public class OrderItemDAOImpl implements OrderItemDAO {
         }
     }
 
-
     @Override
     public List<OrderItem> getOrderItemsByOrderId(int orderId) {
         List<OrderItem> items = new ArrayList<>();

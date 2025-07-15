@@ -25,7 +25,6 @@
         <appender-ref ref="FILE"/>
     </root>
 
-    <!-- Optional: Specific package logger (e.g., your app logs at DEBUG) -->
-    <logger name="com.example.demo1" level="DEBUG"/>
+    <logger name="org.example.demo1" level="DEBUG"/>
 
 </configuration>
