@@ -6,10 +6,13 @@ import org.example.demo1.domain.model.OrderItem;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OrderItemDAOImpl implements OrderItemDAO {
 
     private final Connection conn;
+    private static final Logger log = LoggerFactory.getLogger(OrderItemDAOImpl.class);
 
     public OrderItemDAOImpl(Connection conn) {
         this.conn = conn;
@@ -23,12 +26,22 @@ public class OrderItemDAOImpl implements OrderItemDAO {
             stmt.setInt(2, item.getProductId());
             stmt.setInt(3, item.getQuantity());
             stmt.setDouble(4, item.getUnitPrice());
-            return stmt.executeUpdate() > 0;
+
+            int rowsInserted = stmt.executeUpdate();
+            if (rowsInserted > 0) {
+                log.info("Order item added: orderId={}, productId={}, quantity={}, unitPrice={}",
+                        item.getOrderId(), item.getProductId(), item.getQuantity(), item.getUnitPrice());
+                return true;
+            } else {
+                log.warn("No order item was inserted for orderId={}", item.getOrderId());
+                return false;
+            }
         } catch (SQLException e) {
-            e.printStackTrace(); // Replace with logging in production
+            log.error("Error adding order item: {}", item, e);
             return false;
         }
     }
+
 
     @Override
     public List<OrderItem> getOrderItemsByOrderId(int orderId) {
@@ -46,8 +59,9 @@ public class OrderItemDAOImpl implements OrderItemDAO {
                 item.setUnitPrice(rs.getDouble("unit_price"));
                 items.add(item);
             }
+            log.info("Retrieved order items for orderId={}", items.size());
         } catch (SQLException e) {
-            e.printStackTrace(); // Replace with logging in production
+            log.error("Error retrieving order items for orderId={}", orderId, e);
         }
         return items;
     }
@@ -57,10 +71,18 @@ public class OrderItemDAOImpl implements OrderItemDAO {
         String sql = "DELETE FROM order_items WHERE order_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, orderId);
-            return stmt.executeUpdate() > 0;
+            int rowsDeleted = stmt.executeUpdate();
+            if (rowsDeleted > 0) {
+                log.info("Deleted {} order items for orderId={}", rowsDeleted, orderId);
+                return true;
+            } else {
+                log.warn("No order items found to delete for orderId={}", orderId);
+                return false;
+            }
         } catch (SQLException e) {
-            e.printStackTrace(); // Replace with logging in production
+            log.error("Failed to delete order items for orderId={}", orderId, e);
             return false;
         }
     }
+
 }
