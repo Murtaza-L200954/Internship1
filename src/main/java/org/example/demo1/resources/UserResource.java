@@ -1,6 +1,7 @@
 package org.example.demo1.resources;
 
 import org.example.demo1.common.DBUtil;
+import org.example.demo1.common.security.JWTUtil;
 import org.example.demo1.domain.dao.CustomerDAO;
 import org.example.demo1.domain.dao.UserDAO;
 import org.example.demo1.domain.daoimpl.CustomerDAOImpl;
@@ -97,7 +98,15 @@ public class UserResource {
 
     @PUT
     @Path("/{id}")
-    public Response updateUser(@PathParam("id") int id, User updatedUser) {
+    public Response updateUser(@PathParam("id") int id, User updatedUser,@HeaderParam("Authorization")  String authHeader) {
+
+        String role = JWTUtil.extractRoleFromHeader(authHeader);
+
+        if (role == null || !(role.equals("admin") || role.equals("staff"))) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Access denied: Admins and staff only").build();
+        }
+
         if (updatedUser.getUsername() == null || updatedUser.getPassword() == null || updatedUser.getRole() == null ||
                 updatedUser.getUsername().isEmpty() || updatedUser.getPassword().isEmpty() || updatedUser.getRole().isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -152,8 +161,17 @@ public class UserResource {
         }
     }
 
+    @DELETE
     @Path("/{id}")
-    public Response deleteUser(@PathParam("id") int id) {
+    public Response deleteUser(@PathParam("id") int id, @HeaderParam("Authorization")  String authHeader) {
+
+        String role = JWTUtil.extractRoleFromHeader(authHeader);
+
+        if (role == null || !(role.equals("admin") || role.equals("staff"))) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("Access denied: Admins and staff only").build();
+        }
+
         try (Connection conn = DBUtil.getConnection()) {
             UserDAO userDAO = new UserDAOImpl(conn);
             CustomerDAO customerDAO = new CustomerDAOImpl(conn);

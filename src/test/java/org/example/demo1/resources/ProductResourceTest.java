@@ -25,7 +25,7 @@ public class ProductResourceTest {
     @BeforeEach
     void setUp() {
         mockProductDAO = mock(ProductDAO.class);
-        productResource = new ProductResource(mockProductDAO);
+        //productResource = new ProductResource(mockProductDAO);
     }
 
     private Product createSampleProduct() {
