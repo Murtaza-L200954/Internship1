@@ -10,9 +10,9 @@ import org.example.demo1.domain.model.OrderItem;
 import org.example.demo1.domain.model.Orders;
 import org.example.demo1.domain.model.OrderRequest;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

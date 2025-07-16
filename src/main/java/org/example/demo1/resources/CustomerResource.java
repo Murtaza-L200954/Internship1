@@ -6,9 +6,9 @@ import org.example.demo1.domain.dao.CustomerDAO;
 import org.example.demo1.domain.daoimpl.CustomerDAOImpl;
 import org.example.demo1.domain.model.Customer;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.sql.Connection;
 
 @Path("/customers")
