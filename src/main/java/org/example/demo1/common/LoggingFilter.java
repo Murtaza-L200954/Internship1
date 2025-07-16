@@ -21,7 +21,7 @@ public class LoggingFilter implements ContainerRequestFilter, ContainerResponseF
         MDC.put("requestId", requestId);
 
         String authHeader = requestContext.getHeaderString("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader != null || authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
             if(JWTUtil.validateToken(token)){
@@ -33,6 +33,10 @@ public class LoggingFilter implements ContainerRequestFilter, ContainerResponseF
                     } catch(java.text.ParseException e){
                         MDC.put("role","unknown");
                     }
+                }
+                else{
+                    MDC.put("userId","anonymous");
+                    MDC.put("role","public");
                 }
             }
         }
