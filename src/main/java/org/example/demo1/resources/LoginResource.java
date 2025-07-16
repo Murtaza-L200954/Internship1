@@ -6,9 +6,9 @@ import org.example.demo1.domain.daoimpl.UserDAOImpl;
 import org.example.demo1.domain.model.User;
 import org.example.demo1.common.security.JWTUtil;
 
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.util.Base64;
 
