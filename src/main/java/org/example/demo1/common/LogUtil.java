@@ -25,4 +25,9 @@ public class LogUtil {
         String prefix = String.format("[userId=%s | requestId=%s] ", MDC.get("userId"), MDC.get("requestId"));
         logger.error(prefix + message, throwable);
     }
+
+    public static void logWarn(Logger logger, String message, Throwable throwable) {
+        String prefix = String.format("[userId=%s | requestId=%s] ", MDC.get("userId"), MDC.get("requestId"));
+        logger.warn(prefix + message, throwable);
+    }
 }
