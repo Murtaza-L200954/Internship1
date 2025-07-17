@@ -46,7 +46,6 @@ public class ProductResource {
                     .entity("Access denied: Admins and staff only").build();
         }
 
-
         try (Connection conn = DBUtil.getConnection()){
             ProductDAO dao = new ProductDAOImpl(conn);
             Product product = dao.getProductById(Integer.parseInt(id));
@@ -58,7 +57,6 @@ public class ProductResource {
         } catch(Exception e){
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-
     }
 
     @POST

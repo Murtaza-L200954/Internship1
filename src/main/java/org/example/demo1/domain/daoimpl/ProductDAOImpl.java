@@ -1,5 +1,6 @@
 package org.example.demo1.domain.daoimpl;
 
+import org.example.demo1.common.LogUtil;
 import org.example.demo1.domain.dao.ProductDAO;
 import org.example.demo1.domain.model.Product;
 
@@ -36,10 +37,10 @@ public class ProductDAOImpl implements ProductDAO {
                 product.setStock(rs.getInt("stock"));
                 products.add(product);
             }
-            log.info("Retrieved {} products successfully", products.size());
+            LogUtil.logInfo(log, "Get all products successful " + products);
         }
         catch (SQLException e){
-            log.error("Error retrieving products from DB", e);
+            LogUtil.logError(log, "Failed to get all products " + products, e);
         }
         return products;
     }
@@ -57,12 +58,15 @@ public class ProductDAOImpl implements ProductDAO {
                     product.setDescription(rs.getString("description"));
                     product.setPrice(rs.getDouble("price"));
                     product.setStock(rs.getInt("stock"));
+                    LogUtil.setMDC(id); // I used product id here since I dont understand how to use userid here for now .
                     return product;
                 }
-                log.info("Retrieved {} product successfully", id);
+                LogUtil.logInfo(log, "Get product by id " + id);
             }
         } catch (SQLException e) {
-            log.error("Error retrieving product from DB", e);
+            LogUtil.logError(log, "Failed to get product by id " + id, e);
+        } finally {
+            LogUtil.clearMDC();
         }
         return null;
     }
@@ -76,12 +80,15 @@ public class ProductDAOImpl implements ProductDAO {
             stmt.setString(3, product.getDescription());
             stmt.setDouble(4, product.getPrice());
             stmt.setInt(5, product.getStock());
-            log.info("Added product {} successfully", product.getName());
+            LogUtil.setMDC(product.getId());
+            LogUtil.logInfo(log, "Add product successful " + product);
             return stmt.executeUpdate() > 0;
         }
         catch (SQLException e) {
-            log.error("Error adding product to DB", e);
+            LogUtil.logError(log, "Failed to add product " + product, e);
             return false;
+        } finally{
+            LogUtil.clearMDC();
         }
     }
 
@@ -94,11 +101,14 @@ public class ProductDAOImpl implements ProductDAO {
             stmt.setDouble(3, product.getPrice());
             stmt.setInt(4, product.getStock());
             stmt.setInt(5, product.getId());
-            log.info("Updated product {} successfully", product.getName());
+            LogUtil.setMDC(product.getId());
+            LogUtil.logInfo(log, "Update product successful " + product);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            log.error("Error updating product from DB", e);
+            LogUtil.logError(log, "Failed to update product " + product, e);
             return false;
+        } finally{
+            LogUtil.clearMDC();
         }
     }
 
@@ -107,11 +117,14 @@ public class ProductDAOImpl implements ProductDAO {
         String sql = "DELETE FROM products WHERE id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
-            log.info("Deleted product {} successfully", id);
+            LogUtil.setMDC(id);
+            LogUtil.logInfo(log, "Delete product successful " + id);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            log.error("Error deleting product from DB", e);
+            LogUtil.logError(log, "Failed to delete product " + id, e);
             return false;
+        } finally{
+            LogUtil.clearMDC();
         }
     }
 }
