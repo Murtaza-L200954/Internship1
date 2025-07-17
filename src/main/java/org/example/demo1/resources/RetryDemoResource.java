@@ -13,9 +13,9 @@ public class RetryDemoResource {
     private final ResilientProductService resilientService = new ResilientProductService();
 
     @GET
-    @Path("/retry")
+    @Path("/resilient")
     @Produces(MediaType.TEXT_PLAIN)
-    public String demoRetry() {
-        return resilientService.getProductWithRetry();
+    public String callWithCircuitBreakerAndRetry() {
+        return resilientService.getProductWithResilience();
     }
 }
