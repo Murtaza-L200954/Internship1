@@ -1,5 +1,6 @@
 package org.example.demo1.domain.daoimpl;
 
+import org.example.demo1.common.LogUtil;
 import org.example.demo1.domain.dao.CustomerDAO;
 import org.example.demo1.domain.model.Customer;
 
@@ -36,11 +37,10 @@ public class CustomerDAOImpl implements CustomerDAO {
                 customer.setAddress(rs.getString("address"));
                 customers.add(customer);
             }
-            log.info("Customers found: {}", customers);
+            LogUtil.logInfo(log, String.format("getAllCustomers: %d", customers.size()));
         } catch (SQLException e) {
-            log.error("Error while fetching customers", e);
+            LogUtil.logWarn(log, String.format("getAllCustomers: %s", e.getMessage()));
         }
-
         return customers;
     }
 
@@ -58,19 +58,21 @@ public class CustomerDAOImpl implements CustomerDAO {
                     customer.setPhone(rs.getString("phone"));
                     customer.setAddress(rs.getString("address"));
 
-                    log.info("Customer retrieved successfully: id={}, name={}, email={}",
-                            id, customer.getName(), customer.getEmail());
+                    LogUtil.setMDC(id);
+                    LogUtil.logInfo(log, String.format("Customer retrieved successfully: id=%d, name=%s, email=%s",
+                            id, customer.getName(), customer.getEmail()));
                     return customer;
                 } else {
-                    log.warn("No customer found with id={}", id);
+                    LogUtil.logWarn(log, String.format("No customer found with id=%d", id));
                 }
             }
         } catch (SQLException e) {
-            log.error("Failed to retrieve customer with id={}", id, e);
+            LogUtil.logWarn(log, String.format("Failed to retrieve customer with id=%d", id));
+        } finally {
+            LogUtil.clearMDC();
         }
         return null;
     }
-
 
     @Override
     public Customer getCustomerByUserId(int userId) {
@@ -84,15 +86,19 @@ public class CustomerDAOImpl implements CustomerDAO {
                 customer.setUserId(rs.getInt("user_id"));
                 customer.setName(rs.getString("name"));
 
-                log.info("Customer retrieved successfully by userId={}: name={}, email={}",
-                        userId, customer.getName(), customer.getEmail());
-
+                LogUtil.setMDC(userId);
+                LogUtil.logInfo(log,String.format(
+                        "Customer retrieved successfully by userId=%d: name=%s, email=%s",
+                        userId, customer.getName(), customer.getEmail()
+                ));
                 return customer;
             } else{
-                log.warn("No customer found with id={}", userId);
+                LogUtil.logWarn(log,String.format("No customer found with id=%d", userId));
             }
         } catch (SQLException e) {
-            log.error("Failed to retrieve customer by userId={}", userId, e);
+            LogUtil.logWarn(log, String.format("Failed to retrieve customer with id=%d", userId));
+        }  finally {
+            LogUtil.clearMDC();
         }
         return null;
     }
@@ -110,20 +116,22 @@ public class CustomerDAOImpl implements CustomerDAO {
 
             int rowsInserted = stmt.executeUpdate();
             if (rowsInserted > 0) {
-                log.info("Customer added successfully: userId={}, name={}, email={}",
-                        customer.getUserId(), customer.getName(), customer.getEmail());
+                LogUtil.setMDC(customer.getUserId());
+                LogUtil.logInfo(log, String.format("Customer added successfully: userId=%d, name=%s, email=%s",
+                        customer.getUserId(), customer.getName(), customer.getEmail()));
                 return true;
             } else {
-                log.warn("Customer insertion failed for userId={}", customer.getUserId());
+                LogUtil.logWarn(log, String.format("Failed to add customer with id=%d", customer.getId()));
                 return false;
             }
         } catch (SQLException e) {
-            log.error("Failed to add customer: userId={}, name={}, email={}",
-                    customer.getUserId(), customer.getName(), customer.getEmail(), e);
+            LogUtil.logWarn(log, String.format("Failed to add customer: userId=%d, name=%s, email=%s",
+                    customer.getUserId(), customer.getName(), customer.getEmail()));
             return false;
+        } finally {
+            LogUtil.clearMDC();
         }
     }
-
 
     @Override
     public boolean updateCustomer(Customer customer) {
@@ -137,17 +145,19 @@ public class CustomerDAOImpl implements CustomerDAO {
 
             int rowsUpdated = stmt.executeUpdate();
             if (rowsUpdated > 0) {
-                log.info("Customer updated successfully: id={}, name={}, email={}",
-                        customer.getId(), customer.getName(), customer.getEmail());
+                LogUtil.setMDC(customer.getUserId());
+                LogUtil.logInfo(log, String.format("Customer updated successfully: id=%d, name=%s, email=%s",
+                        customer.getId(), customer.getName(), customer.getEmail()));
                 return true;
             } else {
-                log.warn("No customer found to update with id={}", customer.getId());
+                LogUtil.logWarn(log, String.format("No customer found to update with id=%d", customer.getId()));
                 return false;
             }
         } catch (SQLException e) {
-            log.error("Failed to update customer: id={}, name={}, email={}",
-                    customer.getId(), customer.getName(), customer.getEmail(), e);
+            LogUtil.logWarn(log, String.format("Failed to update customer with id=%d", customer.getId()));
             return false;
+        } finally {
+            LogUtil.clearMDC();
         }
     }
 
@@ -159,17 +169,21 @@ public class CustomerDAOImpl implements CustomerDAO {
             stmt.setInt(1, id);
             int rowsDeleted = stmt.executeUpdate();
             if (rowsDeleted > 0) {
-                log.info("Customer deleted successfully: id={}", id);
+                LogUtil.setMDC(id);
+                LogUtil.logInfo(log, String.format("Customer deleted successfully: id=%d", id));
                 return true;
             } else {
-                log.warn("No customer found to delete with id={}", id);
+                LogUtil.logWarn(log, String.format("Failed to delete customer with id=%d", id));
                 return false;
             }
         } catch (SQLException e) {
-            log.error("Failed to delete customer with id={}", id, e);
+            LogUtil.logError(log,String.format("Failed to delete customer with id=%d", id),e);
             return false;
+        }  finally {
+            LogUtil.clearMDC();
         }
     }
+
 
     @Override
     public boolean deleteCustomerByUserId(int userId) {
@@ -178,15 +192,18 @@ public class CustomerDAOImpl implements CustomerDAO {
             stmt.setInt(1, userId);
             int rowsDeleted = stmt.executeUpdate();
             if (rowsDeleted > 0) {
-                log.info("Customer deleted successfully by userId={}", userId);
+                LogUtil.setMDC(userId);
+                LogUtil.logInfo(log, String.format("Customer deleted successfully: userId=%d", userId));
                 return true;
             } else {
-                log.warn("No customer found to delete with userId={}", userId);
+                LogUtil.logWarn(log, String.format("Failed to delete customer with id=%d", userId));
                 return false;
             }
         } catch (SQLException e) {
-            log.error("Failed to delete customer by userId={}", userId, e);
+            LogUtil.logError(log,String.format("Failed to delete customer with id=%d", userId),e);
             return false;
+        } finally {
+            LogUtil.clearMDC();
         }
     }
 }
