@@ -1,5 +1,6 @@
 package org.example.demo1.domain.daoimpl;
 
+import org.example.demo1.common.LogUtil;
 import org.example.demo1.domain.dao.OrdersDAO;
 import org.example.demo1.domain.model.Orders;
 
@@ -32,9 +33,9 @@ public class OrderDAOImpl implements OrdersDAO {
                 order.setStatus(rs.getString("status"));
                 orders.add(order);
             }
-            log.info("getAllOrders result: {}", orders);
+            LogUtil.logInfo(log, "getAll orders result " + rs);
         } catch (SQLException e) {
-            log.error("getAllOrders error", e);
+            LogUtil.logError(log,"getAll orders error ", e);
         }
         return orders;
     }
@@ -51,12 +52,15 @@ public class OrderDAOImpl implements OrdersDAO {
                     order.setCustomerId(rs.getInt("customer_id"));
                     order.setTotal_amount(rs.getFloat("total_amount"));
                     order.setStatus(rs.getString("status"));
-                    log.info("getOrderById result: {}", order);
+                    LogUtil.setMDC(id);
+                    LogUtil.logInfo(log, "getOrderById result " + order);
                     return order;
                 }
             }
         } catch (SQLException e) {
-            log.error("getOrderById error", e);
+            LogUtil.logError(log,"getOrderById error ", e);
+        } finally {
+            LogUtil.clearMDC();
         }
         return null;
     }
@@ -75,21 +79,22 @@ public class OrderDAOImpl implements OrdersDAO {
                 ResultSet rs = stmt.getGeneratedKeys();
                 if (rs.next()) {
                     int orderId = rs.getInt(1);
-                    log.info("Order added successfully: orderId={}, customerId={}, totalAmount={}, status={}",
-                            orderId, orders.getCustomerId(), orders.getTotal_amount(), orders.getStatus());
+                    LogUtil.setMDC(orderId);
+                    LogUtil.logInfo(log,
+                            String.format("Order added successfully: orderId=%d, customerId=%d, totalAmount=%.2f, status=%s",
+                                    orderId, orders.getCustomerId(), orders.getTotal_amount(), orders.getStatus()));
                     return orderId;
                 }
             } else {
-                log.warn("No order was inserted for customerId={}", orders.getCustomerId());
+                LogUtil.logWarn(log, "addOrder failed, no generated key found");
             }
         } catch (SQLException e) {
-            log.error("Failed to insert order for customerId={}, totalAmount={}, status={}",
-                    orders.getCustomerId(), orders.getTotal_amount(), orders.getStatus(), e);
+            LogUtil.logError(log,"addOrder error ", e);
+        } finally {
+            LogUtil.clearMDC();
         }
         return -1;  // signal failure
     }
-
-
 
 
     @Override
@@ -101,15 +106,24 @@ public class OrderDAOImpl implements OrdersDAO {
 
             int rowsUpdated = stmt.executeUpdate();
             if (rowsUpdated > 0) {
-                log.info("Order status updated: orderId={}, newStatus={}", orderId, newStatus);
+                LogUtil.setMDC(orderId);
+                LogUtil.logInfo(log, String.format(
+                        "Order status updated: orderId=%d, newStatus=%s", orderId, newStatus
+                ));
                 return true;
             } else {
-                log.warn("No order found with id={} to update status", orderId);
+                LogUtil.logWarn(log, String.format(
+                        "No order found with id=%d to update status", orderId
+                ));
                 return false;
             }
         } catch (SQLException e) {
-            log.error("Failed to update status for orderId={}, newStatus={}", orderId, newStatus, e);
+            LogUtil.logError(log,String.format(
+                    "Failed to update status for orderId=%d, newStatus=%s", orderId, newStatus
+            ), e);
             return false;
+        } finally {
+            LogUtil.clearMDC();
         }
     }
 
