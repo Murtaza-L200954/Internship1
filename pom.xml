@@ -127,6 +127,20 @@
             <version>5.2.0</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Resilience4j Core -->
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-retry</artifactId>
+            <version>2.2.0</version> <!-- Or latest stable version -->
+        </dependency>
+
+        <!-- Vavr is required for functional interfaces -->
+        <dependency>
+            <groupId>io.vavr</groupId>
+            <artifactId>vavr</artifactId>
+            <version>0.10.4</version>
+        </dependency>
     </dependencies>
 
     <build>
