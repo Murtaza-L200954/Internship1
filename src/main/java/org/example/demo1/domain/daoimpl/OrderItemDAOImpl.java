@@ -1,5 +1,6 @@
 package org.example.demo1.domain.daoimpl;
 
+import org.example.demo1.common.LogUtil;
 import org.example.demo1.domain.dao.OrderItemDAO;
 import org.example.demo1.domain.model.OrderItem;
 
@@ -29,15 +30,25 @@ public class OrderItemDAOImpl implements OrderItemDAO {
 
             int rowsInserted = stmt.executeUpdate();
             if (rowsInserted > 0) {
-                log.info("Order item added: orderId={}, productId={}, quantity={}, unitPrice={}",
-                        item.getOrderId(), item.getProductId(), item.getQuantity(), item.getUnitPrice());
+                LogUtil.setMDC(item.getOrderId());
+
+                LogUtil.logInfo(
+                        log,
+                        String.format(
+                                "Order item added: orderId=%d, productId=%d, quantity=%d, unitPrice=%.2f",
+                                item.getOrderId(),
+                                item.getProductId(),
+                                item.getQuantity(),
+                                item.getUnitPrice()
+                        )
+                );
                 return true;
             } else {
-                log.warn("No order item was inserted for orderId={}", item.getOrderId());
+                LogUtil.logWarn(log, String.format("No order item was inserted for orderId=%d", item.getOrderId()));
                 return false;
             }
         } catch (SQLException e) {
-            log.error("Error adding order item: {}", item, e);
+            LogUtil.logError(log, "Failed to insert order item into database for orderId=" + item.getOrderId(), e);
             return false;
         }
     }
@@ -58,9 +69,12 @@ public class OrderItemDAOImpl implements OrderItemDAO {
                 item.setUnitPrice(rs.getDouble("unit_price"));
                 items.add(item);
             }
-            log.info("Retrieved order items for orderId={}", items.size());
+            LogUtil.setMDC(orderId);
+            LogUtil.logInfo(log, "getOrderItemsByOrderId: orderId=" + orderId);
         } catch (SQLException e) {
-            log.error("Error retrieving order items for orderId={}", orderId, e);
+            LogUtil.logError(log, "Failed to getOrderItemsByOrderId", e);
+        } finally {
+            LogUtil.clearMDC();
         }
         return items;
     }
@@ -72,16 +86,18 @@ public class OrderItemDAOImpl implements OrderItemDAO {
             stmt.setInt(1, orderId);
             int rowsDeleted = stmt.executeUpdate();
             if (rowsDeleted > 0) {
-                log.info("Deleted {} order items for orderId={}", rowsDeleted, orderId);
+                LogUtil.setMDC(orderId);
+                LogUtil.logInfo(log, "deleteOrderItemsByOrderId: orderId=" + orderId);
                 return true;
             } else {
-                log.warn("No order items found to delete for orderId={}", orderId);
+                LogUtil.logWarn(log, String.format("No order item was deleted for orderId=%d", orderId));
                 return false;
             }
         } catch (SQLException e) {
-            log.error("Failed to delete order items for orderId={}", orderId, e);
+            LogUtil.logError(log, "Failed to deleteOrderItemsByOrderId", e);
             return false;
+        } finally {
+            LogUtil.clearMDC();
         }
     }
-
 }
