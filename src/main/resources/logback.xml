@@ -1,38 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+    <!-- Console Appender (Human-readable for developers) -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
+    <!-- JSON File Appender (Machine-parsable for tools like ELK) -->
     <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- File path should be consistent across file and rollingPolicy -->
         <file>/Users/murtazaahmed/Desktop/demo1/logs/app.json</file>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/app-%d{yyyy-MM-dd}.json</fileNamePattern>
+            <!-- Fixed: relative path and consistent folder -->
+            <fileNamePattern>/Users/murtazaahmed/Desktop/demo1/logs/app-%d{yyyy-MM-dd}.json</fileNamePattern>
             <maxHistory>7</maxHistory>
         </rollingPolicy>
 
+        <!-- Logstash-compatible JSON encoder -->
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>
-                <timestamp />       <!-- ISO 8601 timestamp -->
-                <logLevel />        <!-- INFO, DEBUG, ERROR, etc -->
-                <threadName />      <!-- Thread info -->
-                <loggerName />      <!-- Logger source -->
-                <message />         <!-- Your log message -->
-                <mdc />             <!-- userId, role, requestId -->
-                <stackTrace />      <!-- Full stack trace if exception -->
+                <timestamp />
+                <logLevel />
+                <threadName />
+                <loggerName />
+                <message />
+                <mdc />         <!-- Include MDC data like userId, requestId -->
+                <stackTrace />
             </providers>
         </encoder>
     </appender>
 
+    <!-- Set global logging level -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="JSON_FILE"/>
     </root>
 
-    <logger name="org.example.demo1" level="DEBUG"/>
+    <!-- Enable DEBUG logs specifically for your app packages -->
+    <logger name="org.example.demo1" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="JSON_FILE"/>
+    </logger>
 
 </configuration>
